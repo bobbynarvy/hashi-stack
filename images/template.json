@@ -1,0 +1,38 @@
+{
+  "builders": [
+    {
+      "type": "digitalocean",
+      "image": "ubuntu-20-04-x64",
+      "region": "fra1",
+      "size": "s-1vcpu-1gb",
+      "ssh_username": "root",
+      "snapshot_name": "consul-nomad-{{timestamp}}",
+      "tags": ["consul", "nomad", "factorio-host"]
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "inline": [
+        "apt-get -y update",
+        "sleep 30",
+        "curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -",
+        "add-apt-repository \"deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable\"",
+        "apt-get -y update && apt-get -y install docker-ce docker-ce-cli containerd.io",
+        "curl -fsSL https://apt.releases.hashicorp.com/gpg | apt-key add -",
+        "add-apt-repository \"deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main\"",
+        "apt-get -y update && apt-get -y install nomad consul"
+      ]
+    },
+    {
+      "type": "file",
+      "source": "config-base-files/consul.hcl",
+      "destination": "/etc/consul.d/consul.hcl"
+    },
+    {
+      "type": "file",
+      "source": "config-base-files/consul.service",
+      "destination": "/etc/systemd/system/consul.service"
+    }
+  ]
+}
